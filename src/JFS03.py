@@ -1,8 +1,5 @@
-'''
-Created on Feb 28, 2014
-
-@author: jh
-'''
+#!/usr/bin/env python3
+# -*- coding: utf-8 *-*
 
 import AntNetwork as AN
 import sys
