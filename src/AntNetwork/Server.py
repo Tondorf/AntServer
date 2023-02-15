@@ -214,7 +214,7 @@ class AntServer(object):
         return x + y * PLAYFIELDSIZE
 
     def coord(self, index):
-        return (index % PLAYFIELDSIZE, index // PLAYFIELDSIZE)
+        return (int(index % PLAYFIELDSIZE), int(index // PLAYFIELDSIZE))
 
     def place_homebase(self, xpos, ypos):
         for x in range(20):
