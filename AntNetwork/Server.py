@@ -147,8 +147,9 @@ class AntServer(object):
         if self.do_visualizer:
             self.vis = Visualizer(fullscreen)
 
-
     def build_lookup(self):
+        """this is a mapping from client id (ordering from bases, so, more like the base id)
+           to the index/position in the self.clients lists"""
         self.lookup = [-1 for i in range(16)]
         for idx, c in enumerate(self.clients):
             if c.id >= 0:
@@ -170,22 +171,13 @@ class AntServer(object):
                 return False
         return True
 
-    def clamp(self, x):
-        return max(0, min(x, PLAYFIELDSIZE - 1))
-
-    def dist(self, p1, p2):
-        xdist = p1[0] - p2[0]
-        ydist = p1[1] - p2[1]
-        dist = math.sqrt(xdist * xdist + ydist * ydist)
-        return dist
-
-    def do_action(self, Id, actions):
-        if actions == None:
+    def do_action(self, cid, actions):
+        if actions == None or not actions:
             return
-        idx = self.lookup[Id]
+        idx = self.lookup[cid]
         if idx >= 0:
             client = self.clients[idx]
-            if client.id != Id:
+            if client.id != cid:
                 antPrint("\n-------------- Wrong client ---------------")
             for idx, action in enumerate(actions):
                 if action > 9 or action == 0 or action == 5:
@@ -195,18 +187,18 @@ class AntServer(object):
                     x, y = antpos
                     newx, newy = (x + _move[action][0], y + _move[action][1])
                     oldfield = index(x, y)
-                    newx = self.clamp(newx)
-                    newy = self.clamp(newy)
-                    newfield = index(newx, newy)
+                    newfield = index(honor_bounds(newx), honor_bounds(newy))
                     if self.can_move(oldfield, newfield):
-                        client.ants[idx] = (newx, newy)
+                        client.ants[idx] = coord(newfield)
                         self.set_playfield(newfield, (self.get_playfield(newfield) & 0x0f) | (self.get_playfield(oldfield) & ~HOMEBASE))
                         self.set_playfield(oldfield, self.get_playfield(oldfield) & CLEARANTSUGAR & 0x0f)
                         # check for sugar return
-                        if self.get_playfield(newfield) & (HOMEBASE | SUGAR) == (HOMEBASE | SUGAR) and self.dist(self.homebase_coords[Id], (newx, newy)) < 20.0:
+                        sugar_there = self.get_playfield(newfield) & (HOMEBASE | SUGAR) == (HOMEBASE | SUGAR)
+                        if sugar_there and dist(self.homebase_coords[cid], coord(newfield)) < 20:
                             client.sugar += 1
                             self.set_playfield(newfield, self.playfield[newfield] & CLEARSUGARMASK)
-                        if self.get_playfield(newfield) & HOMEBASE == HOMEBASE and self.dist(self.homebase_coords[Id], (newx, newy)) < 20.0:
+                        homebase = self.get_playfield(newfield) & HOMEBASE == HOMEBASE
+                        if homebase and dist(self.homebase_coords[cid], coord(newfield)) < 20:
                             self.set_health(newfield, 10)
 
     def get_health(self, field):
