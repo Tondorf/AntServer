@@ -15,6 +15,13 @@ import random
 from AntNetwork.Visualizer import Visualizer
 from AntNetwork.Common import *
 
+try:
+    import pygame
+except:
+    have_pygame = False
+else:
+    have_pygame = True
+
 
 _move = ( (0,0),
           (-1,-1),
@@ -337,9 +344,10 @@ class AntServer(object):
 
     def run(self, maxturns=0):
         turn = 0
+        running = True
 
         # MAIN GAME LOOP
-        while True:
+        while running:
             if self.tournament and not self.started:
                 if time.time() > self.server_start + STARTDELAY:
                     self.open = False
@@ -363,6 +371,9 @@ class AntServer(object):
 
             if self.do_visualizer:
                 self.vis.draw(self.playfield)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
 
             sys.stderr.write('\rtick={} objects={}'.format(turn, len(self.playfield)))
             turn += 1
