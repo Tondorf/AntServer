@@ -6,6 +6,12 @@ Server application (with visualizer) can be invoked with `AntServer.py`
 
 Several sample clients are included (JFS01/02/03, JRaider01).
 
+## Installation and Usage
+
+Install: `pip install -r requirements.txt`
+
+Usage: `python AntServer.py`
+
 ## Game Documentation
 
 The playfield is pre-defined: 1000x1000 fields.

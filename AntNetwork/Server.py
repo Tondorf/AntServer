@@ -19,6 +19,7 @@ try:
     import pygame
 except:
     have_pygame = False
+    print("pygame not installed! visualizer will not work!")
 else:
     have_pygame = True
 
