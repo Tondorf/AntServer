@@ -10,9 +10,7 @@ class AntClient(object):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
         self.s.connect((host, port))
-
         self.id = -1
-
         send_hello(self.s, actor, name)
 
     def get_turn(self):
