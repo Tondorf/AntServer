@@ -364,9 +364,9 @@ class AntServer(object):
                 x, y = ant
                 field = self.index(x, y)
                 health = self.get_health(field)
-                # print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip("\0"), ant[0], ant[1], health))
+                #print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
-                    print("Ant of team {}:{} WAS ALEADY DEAD!".format(c.id, c.name.strip("\0")))
+                    print("Ant of team {}:{} WAS ALEADY DEAD!".format(c.id, c.name.strip(b"\0")))
                 for nx, ny in _move:
                     neigh = self.index(x + nx, y + ny)
                     if neigh >= 0 and neigh < (PLAYFIELDSIZE * PLAYFIELDSIZE) and neigh != field:
@@ -374,7 +374,7 @@ class AntServer(object):
                             health -= 1
                             if health == 0:
                                 foe = self.clients[self.lookup[self.get_team(neigh)]]
-                                print("Ant of team {}:{} killed by team {}:{}".format(c.id, c.name.strip("\0"), foe.id, foe.name.strip("\0")))
+                                print("Ant of team {}:{} killed by team {}:{}".format(c.id, c.name.strip(b"\0"), foe.id, foe.name.strip(b"\0")))
                                 foe.sugar += 32
                 if health <= 0:
                     health = 0
@@ -385,10 +385,10 @@ class AntServer(object):
             for idx, ant in ants:
                 field = self.index(*ant)
                 health = self.get_health(field)
-                # print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip("\0"), ant[0], ant[1], health))
+                # print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
                     self.set_playfield(field, self.get_playfield(field) & CLEARANTMASK)
-                    print("Ant of team {}:{} killed. Remaining ants: {}".format(c.id, c.name.strip("\0"), len(c.ants)))
+                    print("Ant of team {}:{} killed. Remaining ants: {}".format(c.id, c.name.strip(b"\0"), len(c.ants)))
                     del c.ants[idx]
                     self.set_playfield(field, self.get_playfield(field) | SUGAR)
                     for off in [1, -1, 1 + PLAYFIELDSIZE, -1 - PLAYFIELDSIZE]:
@@ -424,7 +424,7 @@ class AntServer(object):
                 if idx == -1:
                     f.write("\t\t\n")
                 else:
-                    f.write("{}\t{}\t{}\n".format(self.clients[idx].name.strip("\0"), self.clients[idx].sugar, len(self.clients[idx].ants)))
+                    f.write("{}\t{}\t{}\n".format(self.clients[idx].name.strip(b"\0"), self.clients[idx].sugar, len(self.clients[idx].ants)))
 
     _DOWNCOUNT = 1000
     _downcount = 1000
