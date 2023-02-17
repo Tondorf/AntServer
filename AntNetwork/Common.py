@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 *-*
 
+TICK_TARGET = 20
+
 ANT = 1
 SUGAR = 2
 ANTSUGAR = 3
@@ -26,3 +28,6 @@ def index(x, y):
 
 def coord(idx):
     return (int(idx % PLAYFIELDSIZE), int(idx // PLAYFIELDSIZE))
+
+def antPrint(args):
+    print("\n"+args)

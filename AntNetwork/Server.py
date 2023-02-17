@@ -51,7 +51,7 @@ class AntServer(object):
                 IDs = list(range(16))
                 free = sorted(set(IDs) - set(used))
                 if not len(free):
-                    print("Game if FULL, cannot add new client")
+                    antPrint("Game is FULL, cannot add new client")
                     self.s.close()
                     self.server.clients.remove(self)
                     return
@@ -60,14 +60,14 @@ class AntServer(object):
                 self.server.build_lookup()
                 self.server.place_ants(self.id)
             self.hello_received = True
-            print('Hello received from client {}: {}'.format(self.id, self.name))
+            antPrint('Hello received from client {}: {}'.format(self.id, self.name.rstrip(b'\0')))
 
         def fileno(self):
             return self.s.fileno()
 
         def set_action(self, action):
             self.action = action
-            # print("Action {}: {}".format(self.id, action))
+            # antPrint("Action {}: {}".format(self.id, action))
 
         def get_action(self):
             action = self.action
@@ -102,14 +102,13 @@ class AntServer(object):
             for y in range(radius):
                 self.set_playfield(index(xpos + x, ypos + y), SUGAR)
 
-    def place_sugars_randomly(self, num, size):
+    def place_sugars_randomly(self, num, dim):
         for i in range(num):
             min = BORDER + BASESIZE + BASEDIST
-            max = PLAYFIELDSIZE - BORDER - BASESIZE - BASEDIST - math.sqrt(size)
+            max = PLAYFIELDSIZE - BORDER - BASESIZE - BASEDIST - dim
             xpos = random.randint(min, max)
             ypos = random.randint(min, max)
-            sz = int(math.sqrt(size))
-            self.place_sugar_cube(xpos, ypos, sz)
+            self.place_sugar_cube(xpos, ypos, dim)
 
     def __init__(self, do_visualizer=True, fullscreen=False, tournament=False, port=5000):
         self.playfield = {}
@@ -135,7 +134,7 @@ class AntServer(object):
         for x, y in self.homebase_coords:
             self.place_homebase(x - BASESIZE // 2, y - BASESIZE // 2)
             print("Homebase at {},{}".format(x, y))
-        self.place_sugars_randomly(5, 100)
+        self.place_sugars_randomly(3, 10)
 
         if self.do_visualizer:
             self.vis = Visualizer(fullscreen)
@@ -179,7 +178,7 @@ class AntServer(object):
         if idx >= 0:
             client = self.clients[idx]
             if client.id != Id:
-                print("\n-------------- Wrong client ---------------")
+                antPrint("\n-------------- Wrong client ---------------")
             for idx, action in enumerate(actions):
                 if action > 9 or action == 0 or action == 5:
                     continue
@@ -219,9 +218,9 @@ class AntServer(object):
                 x, y = ant
                 field = index(x, y)
                 health = self.get_health(field)
-                #print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
+                #antPrint("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
-                    print("Ant of team {}:{} WAS ALEADY DEAD!".format(c.id, c.name.strip(b"\0")))
+                    antPrint("Ant of team {}:{} WAS ALEADY DEAD!".format(c.id, c.name.strip(b"\0")))
                 for nx, ny in _move:
                     neigh = index(x + nx, y + ny)
                     if neigh >= 0 and neigh < (PLAYFIELDSIZE * PLAYFIELDSIZE) and neigh != field:
@@ -229,7 +228,7 @@ class AntServer(object):
                             health -= 1
                             if health == 0:
                                 foe = self.clients[self.lookup[self.get_team(neigh)]]
-                                print("Ant of team {}:{} killed by team {}:{}".format(c.id, c.name.strip(b"\0"), foe.id, foe.name.strip(b"\0")))
+                                antPrint("Ant of team {}:{} killed by team {}:{}".format(c.id, c.name.strip(b"\0"), foe.id, foe.name.strip(b"\0")))
                                 foe.sugar += 32
                 if health <= 0:
                     health = 0
@@ -240,10 +239,10 @@ class AntServer(object):
             for idx, ant in ants:
                 field = index(*ant)
                 health = self.get_health(field)
-                # print("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
+                # antPrint("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
                     self.set_playfield(field, self.get_playfield(field) & CLEARANTMASK)
-                    print("Ant of team {}:{} killed. Remaining ants: {}".format(c.id, c.name.strip(b"\0"), len(c.ants)))
+                    antPrint("Ant of team {}:{} killed. Remaining ants: {}".format(c.id, c.name.strip(b"\0"), len(c.ants)))
                     del c.ants[idx]
                     self.set_playfield(field, self.get_playfield(field) | SUGAR)
                     for off in [1, -1, 1 + PLAYFIELDSIZE, -1 - PLAYFIELDSIZE]:
@@ -331,7 +330,7 @@ class AntServer(object):
                 try:
                     send_turn(c.s, c.id, teams, objects)
                 except Exception as e:
-                    print('Removing client {} ({})\n{}'.format(c.id, e, traceback.format_exc()))
+                    antPrint('Removing client {} ({})\n{}'.format(c.id, e, traceback.format_exc()))
                     c.remove()
                     self.clients.remove(c)
                     self.build_lookup()
@@ -345,8 +344,8 @@ class AntServer(object):
                 if time.time() > self.server_start + STARTDELAY:
                     self.open = False
                     self.started = True
-                    print("Tournament started!")
-            sleep(0.05)  # round time
+                    antPrint("Tournament started!")
+            sleep(1/TICK_TARGET)  # round time
 
             self.handle_client_inputs()
 
@@ -365,7 +364,7 @@ class AntServer(object):
             if self.do_visualizer:
                 self.vis.draw(self.playfield)
 
-            sys.stderr.write('\r{}'.format(turn))
+            sys.stderr.write('\rtick={} objects={}'.format(turn, len(self.playfield)))
             turn += 1
             if maxturns > 0 and turn >= maxturns:
                 self.save_scores()
