@@ -40,7 +40,7 @@ if __name__ == "__main__":
     if "--tournament" in sys.argv:
         tournament = True
 
-    maxrounds = 5000
+    maxrounds = 0
     for arg in sys.argv:
         match = re.match("--maxrounds=([0-9]+)", arg)
         if match:

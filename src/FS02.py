@@ -25,13 +25,13 @@ def ant_id(obj):
 
 def health(obj):
     return (obj[1] & 0x0f)
-    
+
 def coords(obj):
     return (obj[2],obj[3])
 
 def rect_dist(p1, p2):
-    return abs(p1[0]-p2[0]) + abs(p1[1]-p2[1]) 
- 
+    return abs(p1[0]-p2[0]) + abs(p1[1]-p2[1])
+
 def get_dir(dist):
     if dist < 0:
         return -1
@@ -57,9 +57,9 @@ def dir_code(xm,  ym):
     elif xm == 0 and ym > 0:
         return 8
     return 9
-    
+
 def get_move(pos, target):
-    xdist = target[0] - pos[0] 
+    xdist = target[0] - pos[0]
     ydist = target[1] - pos[1]
     xmove = get_dir(xdist)
     ymove = get_dir(ydist)
@@ -73,7 +73,7 @@ def get_move(pos, target):
         if random.randint(0,100) < 5:
             xmove = random.choice([-1,1])
     return dir_code(xmove, ymove)
-    
+
 def get_action(mybase, ant, sugar, ants):
     if ant is None:
         return 0
@@ -102,8 +102,11 @@ def get_action(mybase, ant, sugar, ants):
         if aidx >= 0 and dist < 2*adist:
             return get_move(pos, ants[aidx])
     return random.randint(1, 9)
-        
+
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("need IP as first argument")
+        sys.exit(1)
     client = AN.AntClient(sys.argv[1], 5000, 'JFS02', True)
     while True:
         Id, teams, objects = client.get_turn()
@@ -118,7 +121,6 @@ if __name__ == '__main__':
                 sugar.append(coords(obj))
             elif is_sugar(obj):
                 ants.append(coords(obj))
-            
-        
+
+
         client.send_action([ get_action(mybase, ant, sugar, ants) for ant in my_ants ])
-            

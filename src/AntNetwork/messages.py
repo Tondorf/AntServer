@@ -30,7 +30,7 @@ def receive_action(sock, Id):
 
 
 def send_hello(sock, typ, name):
-    sock.send(_hello.pack(typ, name))
+    sock.send(_hello.pack(typ, str.encode(name)))
 
 
 def receive_hello(sock):
