@@ -367,7 +367,6 @@ class AntServer(object):
 
             teams = self.get_teams()
             objects = self.get_objects()
-
             self.notify_clients(teams, objects)
 
             if self.do_visualizer:
@@ -380,4 +379,4 @@ class AntServer(object):
             turn += 1
             if maxturns > 0 and turn >= maxturns:
                 self.save_scores()
-                sys.exit()
+                running = False
