@@ -275,8 +275,9 @@ class AntServer(object):
             for y in range(4):
                 idx = index(xpos + x, ypos + y)
                 ant_id = x + y * 4
-                self.set_playfield(idx, self.get_playfield(idx) | (ANT + (ant_id << ANTID_SHIFT) + (10 << HEALTH_SHIFT) + (Id << ID_SHIFT)))
-                client.ants[ant_id] = (xpos + x, ypos + y)
+                new_val = (ANT + (ant_id << ANTID_SHIFT) + (10 << HEALTH_SHIFT) + (Id << ID_SHIFT))
+                self.set_playfield(idx, self.get_playfield(idx) | new_val)
+                client.ants[ant_id] = coord(idx)
 
     def save_scores(self):
         if self.tournament:

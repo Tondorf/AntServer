@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 *-*
 
-import AntNetwork
+from AntNetwork.Server import AntServer
 import sys
 import cProfile
 import re
@@ -18,7 +18,7 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    server = AntNetwork.AntServer(not args.no_display, args.fullscreen, args.tournament)
+    server = AntServer(not args.no_display, args.fullscreen, args.tournament)
     if args.profiling:
         cProfile.run("server.run(100)")
     else:

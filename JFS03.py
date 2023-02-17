@@ -2,6 +2,7 @@
 # -*- coding: utf-8 *-*
 
 import AntNetwork as AN
+from AntNetwork.Client import AntClient
 import sys
 import math
 import random
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("need IP as first argument")
         sys.exit(1)
-    client = AN.AntClient(sys.argv[1], 5000, "JFS03", True)
+    client = AntClient(sys.argv[1], 5000, "JFS03", True)
     if len(sys.argv) > 2:
         num_raiders = int(sys.argv[2])
     else:
