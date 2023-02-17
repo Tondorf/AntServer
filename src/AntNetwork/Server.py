@@ -397,7 +397,7 @@ class AntServer(object):
                             self.set_playfield(place, self.get_playfield(place) | SUGAR)
 
     def get_teams(self):
-        teams = [(0, 0, '') for i in range(16)]
+        teams = [(0, 0, b'') for i in range(16)]
         for c in self.clients:
             if c.id >= 0:
                 teams[c.id] = (c.sugar, len(c.ants), c.name)

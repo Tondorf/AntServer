@@ -43,8 +43,8 @@ def receive_hello(sock):
 
 def send_turn(sock, Id, teams, objects):
     buf = ctypes.create_string_buffer(_turn.size +
-                                      _team.size * len(teams) + 
-                                      _word.size + 
+                                      _team.size * len(teams) +
+                                      _word.size +
                                       _object.size * len(objects))
     _turn.pack_into(buf, 0, Id)
     offset = _turn.size
