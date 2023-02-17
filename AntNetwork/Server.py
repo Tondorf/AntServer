@@ -47,18 +47,16 @@ class AntServer(object):
             typ, self.name = hello_msg
             self.actor = typ != 0
             if self.actor:
-                used_ids = [c.id for c in self.server.clients]
-                self.id = -1
-                ids = [i for i in range(16)]
-                # random.shuffle(ids)
-                for i in ids:
-                    if i not in used_ids:
-                        self.id = i
-                        break
-                if self.id == -1:
+                used = [c.id for c in self.server.clients]
+                IDs = list(range(16))
+                free = sorted(set(IDs) - set(used))
+                if not len(free):
+                    print("Game if FULL, cannot add new client")
                     self.s.close()
-                    self.clients.remove(self)
-
+                    self.server.clients.remove(self)
+                    return
+                #random.shuffle(free)
+                self.id = free[0]
                 self.server.build_lookup()
                 self.server.place_ants(self.id)
             self.hello_received = True
@@ -283,31 +281,30 @@ class AntServer(object):
                 else:
                     f.write("{}\t{}\t{}\n".format(self.clients[idx].name.strip(b"\0"), self.clients[idx].sugar, len(self.clients[idx].ants)))
 
-    _DOWNCOUNT = 1000
     _downcount = 1000
 
     def get_objects(self):
         objects = []
-        sugar = 0
+        sugarcount = 0
         for i, field in list(self.playfield.items()):
             if field != 0:
                 if field & ANTSUGAR != 0:
                     if field & SUGAR == SUGAR:
-                        sugar += 1
+                        sugarcount += 1
                     o1 = ((field & ANTSUGAR) << 4) | ((field >> ID_SHIFT) & 0x0f)
                     o2 = (((field >> ANTID_SHIFT) & 0x0f) << 4) | ((field >> HEALTH_SHIFT) & 0x0f)
                     o3, o4 = coord(i)
                     objects.append((o1, o2, o3, o4))
-        if sugar == 0:
+        if sugarcount == 0: # no sugar in the game anymore
             self._downcount -= 1
             if self._downcount <= 0:
                 self.save_scores()
                 sys.exit()
         else:
-            self._downcount = self._DOWNCOUNT
+            self._downcount = 1000
         return objects
 
-    def handle_clients(self):
+    def handle_client_inputs(self):
         # loop for handling network clients via select
         while True:
             rlist, _, _ = select.select([self.server] + self.clients, [], [], 0.0)
@@ -328,8 +325,20 @@ class AntServer(object):
                     else:
                         c.hello(receive_hello(c.s))
 
+    def notify_clients(self, teams, objects):
+        for c in self.clients:
+            if c.hello_received:
+                try:
+                    send_turn(c.s, c.id, teams, objects)
+                except Exception as e:
+                    print('Removing client {} ({})\n{}'.format(c.id, e, traceback.format_exc()))
+                    c.remove()
+                    self.clients.remove(c)
+                    self.build_lookup()
+
     def run(self, maxturns=0):
         turn = 0
+
         # MAIN GAME LOOP
         while True:
             if self.tournament and not self.started:
@@ -339,7 +348,7 @@ class AntServer(object):
                     print("Tournament started!")
             sleep(0.05)  # round time
 
-            self.handle_clients()
+            self.handle_client_inputs()
 
             if self.started:
                 for c in self.clients:
@@ -351,15 +360,7 @@ class AntServer(object):
             teams = self.get_teams()
             objects = self.get_objects()
 
-            for c in self.clients:
-                if c.hello_received:
-                    try:
-                        send_turn(c.s, c.id, teams, objects)
-                    except Exception as e:
-                        print('Removing client {} ({})\n{}'.format(c.id, e, traceback.format_exc()))
-                        c.remove()
-                        self.clients.remove(c)
-                        self.build_lookup()
+            self.notify_clients(teams, objects)
 
             if self.do_visualizer:
                 self.vis.draw(self.playfield)
