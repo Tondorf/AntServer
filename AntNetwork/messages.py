@@ -7,7 +7,7 @@ import socket
 
 _action = Struct("16B")
 _hello = Struct("H16s")
-_team = Struct("HH16s")
+_team = Struct("hH16s")
 _object = Struct("BBHH")
 _turn = Struct("h")
 _word = Struct("H")

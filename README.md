@@ -94,7 +94,7 @@ Offset       Type      Description
 Each Team is coded as follows:
 ```
 Offset   Type      Description
-0        u16       # sugar/points for this team/base
+0        s16       # points for this team/base
 2        u16       # remaining ants
 4        16 chars  team name
 ```

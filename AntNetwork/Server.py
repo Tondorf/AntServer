@@ -293,8 +293,8 @@ class AntServer(object):
                 # antPrint("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
                     self.set_playfield(field, self.get_playfield(field) & CLEARANTMASK)
-                    antPrint("Team {} lost ant {}. Remaining ant count: {}".format(c.id, c.name.strip(b"\0"), len(c.ants)))
                     del c.ants[idx]
+                    antPrint("Team {} lost an ant, remaining ant count: {}".format(c.name.strip(b"\0"), len(c.ants)))
                     if SPAWN_SUGAR_ON_DEAD_ANT:
                         # spawn a "+" of 5 sugars surrounding the now-dead ant"
                         for off in [0, 1, -1, 1 + PLAYFIELDSIZE, -1 - PLAYFIELDSIZE]:
