@@ -346,6 +346,8 @@ class AntServer(object):
                     o1 = Coord.typ(field) << 4 | Coord.cid(field)
                     o2 = Coord.ant_id(field) << 4 | Coord.health(field)
                     objects.append((o1, o2) + coord(i))
+                    # obj = (Coord.typ(field), Coord.cid(field), Coord.ant_id(field), Coord.health(field))
+                    # objects.append(obj + coord(i))
         if sugarcount == 0: # no sugar in the game anymore
             self._downcount -= 1
             if self._downcount <= 0:

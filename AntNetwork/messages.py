@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 *-*
 
+from AntNetwork.Common import *
 from struct import *
 import ctypes
 import socket
@@ -8,13 +9,13 @@ import socket
 _action = Struct("16B")
 _hello = Struct("H16s")
 _team = Struct("hH16s")
-_object = Struct("BBHH")
+_object = Struct("BBHH") # typ | cid, ant_id | health, X, Y
 _turn = Struct("h")
 _word = Struct("H")
 
 
 def send_action(sock, actions):
-    sock.send(_action.pack(*actions[0:16]))
+    sock.send(_action.pack(*actions[0:ANTS]))
 
 
 def receive_action(sock, Id):
@@ -47,17 +48,16 @@ def send_turn(sock, cid, teams, objects):
                                       _word.size +
                                       _object.size * len(objects))
     _turn.pack_into(buf, 0, cid)
+    assert len(teams) == BASES
     offset = _turn.size
-    if len(teams) != 16:
-        raise Exception
     for t in teams:
-        _team.pack_into(buf, offset, t[0], t[1], t[2])
+        _team.pack_into(buf, offset, *t)
         offset += _team.size
     _word.pack_into(buf, offset, len(objects))
     offset += _word.size
     for o in objects:
         try:
-            _object.pack_into(buf, offset, o[0], o[1], o[2], o[3])
+            _object.pack_into(buf, offset, *o)
         except:
             print("Error sending turn object: {}".format(o))
             raise
@@ -67,11 +67,11 @@ def send_turn(sock, cid, teams, objects):
 
 
 def receive_turn(sock):
-    buf = sock.recv(_turn.size + 16 * _team.size + _word.size)
+    buf = sock.recv(_turn.size + BASES * _team.size + _word.size)
     (cid,) = _turn.unpack_from(buf)
     teams = []
     offset = _turn.size
-    for _ in range(16):
+    for _ in range(BASES):
         teams.append(_team.unpack_from(buf, offset))
         offset += _team.size
 

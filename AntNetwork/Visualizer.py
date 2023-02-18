@@ -78,10 +78,9 @@ class Visualizer:
         self.draw_text(self.screen, 'AntServer Teams', self.font, (1100, 20), Colors.white.value)
         self.draw_text(self.screen, 'ID Ants Score Name', self.font, (1020, 50), Colors.red.value)
         for id, t in enumerate(teams):
-            sugar, ants, name = t
+            score, ants, name = t
             name = ''.join([chr(c) for c in name if chr(c) in string.printable])
-            self.draw_text(self.screen,
-                      '{:>2}   {:>2} {:>5} {}'.format(id, ants, sugar, name),
-                      self.font, (1020, 80 + id * 20), Colors.white.value)
+            self.draw_text(self.screen, "{:>2}   {:>2} {:>5} {}".format(id, ants, score, name),
+                self.font, (1020, 80 + id * 20), Colors.white.value)
 
         pygame.display.flip()

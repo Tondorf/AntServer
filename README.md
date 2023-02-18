@@ -46,9 +46,21 @@ Each round is timed by the server, only the first message per client is used in 
 Each round is terminated by the 'turn' message (see below).
 
 Clients send messages to the server to act via the TCP/IP link.
-The objects (inhabitants and sugar) are sent with every turn to the clients.
-Ants automatically pick up sugar when walking on it and automatically deliver it when they reach their homebase.
-Atomic waste is still work in progress.
+The objects (inhabitants and sugar and toxin) are sent with every turn to the clients.
+
+The map spawns with both sugar and toxin in the middle.
+
+Ants automatically pick up sugar/toxin when walking on it, can not drop it on their own, and automatically deliver it when reaching any base.
+
+Sugar grants points to the base where it is delived and toxin does the opposite.
+
+Visualizer:
+- Homebases = grey
+- Sugar = white
+- Toxin = green
+- Ants = red
+- Ants carrying sugar = magenta
+- Ants carrying toxin = cyan
 
 A client connection works as follows:
 ```
