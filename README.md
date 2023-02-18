@@ -4,13 +4,17 @@ Framework resides in the `AntNetwork` folder.
 
 Server application (with visualizer) can be invoked with `AntServer.py`
 
-Several sample clients are included (JFS01/02/03, JRaider01).
+Several sample clients are included (files with `SampleBotXX`).
 
 ## Installation and Usage
 
 Install: `pip install -r requirements.txt`
 
-Usage: `python AntServer.py`
+Start server: `python AntServer.py`
+
+Start visualizer: `python AntVisualizer.py`
+
+Start sample client: `python SampleBotXX.py`
 
 ## Game Documentation
 

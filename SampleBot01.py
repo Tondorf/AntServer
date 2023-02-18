@@ -7,7 +7,7 @@ import sys
 import math
 import random
 
-from Jcommon import *
+from SampleBotCommon import *
 
 
 def get_move(pos, target):
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("need IP as first argument")
         sys.exit(1)
-    client = AntClient(sys.argv[1], 5000, "JFS01", True)
+    client = AntClient(sys.argv[1], 5000, "SampleBot01", True)
     while True:
         Id, teams, objects = client.get_turn()
         mybase = homebase_coords[Id]

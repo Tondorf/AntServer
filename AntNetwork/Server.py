@@ -12,16 +12,7 @@ import traceback
 from datetime import datetime
 import time
 import random
-from AntNetwork.Visualizer import Visualizer
 from AntNetwork.Common import *
-
-try:
-    import pygame
-except:
-    have_pygame = False
-    print("pygame not installed! visualizer will not work!")
-else:
-    have_pygame = True
 
 
 _move = {
@@ -148,7 +139,7 @@ class AntServer(object):
             ypos = random.randint(min, max)
             self.place_entity_cube(xpos, ypos, dim, material)
 
-    def __init__(self, do_visualizer=True, fullscreen=False, tournament=False, port=5000):
+    def __init__(self, tournament=False, port=5000):
         self.playfield = {}
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -156,7 +147,6 @@ class AntServer(object):
         self.server.listen(1)
         self.clients = []
         self.build_lookup()
-        self.do_visualizer = do_visualizer
         self.tournament = tournament
         self.open = True
         if self.tournament:
@@ -176,9 +166,6 @@ class AntServer(object):
         self.place_random_patches(INIT_PATCHES_TOXIN_CNT, INIT_PATCHES_TOXIN_SIZE, TOXIN)
         ### DEBUG!!!
         self.place_entity_cube(100, 100, 2, TOXIN)
-
-        if self.do_visualizer:
-            self.vis = Visualizer(fullscreen)
 
     def build_lookup(self):
         """this is a mapping from client id (ordering from bases, so, more like the base id)
@@ -340,7 +327,7 @@ class AntServer(object):
         sugarcount = 0
         for i, field in list(self.playfield.items()):
             if field != 0:
-                if field & ANT_WITH_SUGAR != 0:
+                if field & TRANSMIT_MASK != 0:
                     if Coord.typ(field) & SUGAR == SUGAR:
                         sugarcount += 1
                     o1 = Coord.typ(field) << 4 | Coord.cid(field)
@@ -414,12 +401,6 @@ class AntServer(object):
             teams = self.get_teams()
             objects = self.get_objects()
             self.notify_clients(teams, objects)
-
-            if self.do_visualizer:
-                self.vis.draw(teams, self.playfield)
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
 
             sys.stderr.write('\rtick={} objects={}'.format(turn, len(self.playfield)))
             turn += 1

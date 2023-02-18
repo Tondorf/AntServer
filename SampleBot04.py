@@ -7,10 +7,10 @@ import sys
 import math
 import random
 
-from Jcommon import *
+from SampleBotCommon import *
 
 
-from JFS02 import get_move
+from SampleBot02 import get_move
 
 
 def get_action(mybase, ant, sugar, ants):
@@ -33,10 +33,7 @@ def get_action(mybase, ant, sugar, ants):
             target = sugar[idx]
             del sugar[idx]  # remove targeted sugar piece
             return get_move(pos, target)
-    if health(ant) < 9:
-        return get_move(pos, mybase)
-    else:
-        return random.randint(1, 9)
+    return get_move(pos, mybase)
 
 
 _raider_target = None
@@ -71,7 +68,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("need IP as first argument")
         sys.exit(1)
-    client = AntClient(sys.argv[1], 5000, "JFS03", True)
+    client = AntClient(sys.argv[1], 5000, "SampleBot04", True)
     if len(sys.argv) > 2:
         num_raiders = int(sys.argv[2])
     else:
@@ -91,4 +88,4 @@ if __name__ == "__main__":
                 ants.append(obj)
 
         _raider_target = None
-        client.send_action([get_action(mybase, ant, sugar, ants) for ant in my_ants])
+        client.send_action([get_raider_action(mybase, ant, sugar, ants) for ant in my_ants])
