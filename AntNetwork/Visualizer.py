@@ -31,7 +31,7 @@ class Visualizer:
         for i, field in list(playfield.items()):  # for every pixel:
             if field == 0:
                 continue
-            if field & ANTSUGAR == ANTSUGAR:
+            if field & ANT_WITH_SUGAR == ANT_WITH_SUGAR:
                 self.screen.set_at(coord(i), (255, 255, 0))
             elif field & SUGAR == SUGAR:
                 self.screen.set_at(coord(i), (0, 255, 0))

@@ -47,6 +47,8 @@ Each round is terminated by the 'turn' message (see below).
 
 Clients send messages to the server to act via the TCP/IP link.
 The objects (inhabitants and sugar) are sent with every turn to the clients.
+Ants automatically pick up sugar when walking on it and automatically deliver it when they reach their homebase.
+Atomic waste is still work in progress.
 
 A client connection works as follows:
 ```
@@ -92,7 +94,7 @@ Offset       Type      Description
 Each Team is coded as follows:
 ```
 Offset   Type      Description
-0        u16       # sugar at home base
+0        u16       # sugar/points for this team/base
 2        u16       # remaining ants
 4        16 chars  team name
 ```
@@ -100,7 +102,7 @@ Offset   Type      Description
 Each Object is coded as follows:
 ```
 Offset   Type    Description
-0        u8      upper nibble: object type (0=empty, 1=ant, 2=sugar, 3=ant+sugar), lower nibble: team ID
+0        u8      upper nibble: object type (0=empty, 1=ant, 2=sugar, 4=homebase, 8=atomic_waste, or bit combinations thereof), lower nibble: team ID
 1        u8      upper nibble: ant ID, lower nibble: ant health (1-10)
 2        u16     horizontal (X) coordinate
 4        u16     vertical (Y) coordinate
