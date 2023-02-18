@@ -41,12 +41,12 @@ def receive_hello(sock):
         return (0, "-error-")
 
 
-def send_turn(sock, Id, teams, objects):
+def send_turn(sock, cid, teams, objects):
     buf = ctypes.create_string_buffer(_turn.size +
                                       _team.size * len(teams) +
                                       _word.size +
                                       _object.size * len(objects))
-    _turn.pack_into(buf, 0, Id)
+    _turn.pack_into(buf, 0, cid)
     offset = _turn.size
     if len(teams) != 16:
         raise Exception
@@ -68,7 +68,7 @@ def send_turn(sock, Id, teams, objects):
 
 def receive_turn(sock):
     buf = sock.recv(_turn.size + 16 * _team.size + _word.size)
-    (Id,) = _turn.unpack_from(buf)
+    (cid,) = _turn.unpack_from(buf)
     teams = []
     offset = _turn.size
     for _ in range(16):
@@ -83,4 +83,4 @@ def receive_turn(sock):
     for _ in range(numobj):
         objects.append(_object.unpack_from(buf, offset))
         offset += _object.size
-    return (Id, teams, objects)
+    return cid, teams, objects

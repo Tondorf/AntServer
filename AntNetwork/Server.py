@@ -24,16 +24,18 @@ else:
     have_pygame = True
 
 
-_move = ( (0,0),
-          (-1,-1),
-          (0,-1),
-          (1,-1),
-          (-1,0),
-          (0,0),
-          (1,0),
-          (-1,1),
-          (0,1),
-          (1,1) )
+_move = {
+    0: (0,0),
+    1: (-1,-1),
+    2: (0,-1),
+    3: (1,-1),
+    4: (-1,0),
+    5: (0,0),
+    6: (1,0),
+    7: (-1,1),
+    8: (0,1),
+    9: (1,1)
+}
 
 
 class AntServer(object):
@@ -86,6 +88,8 @@ class AntServer(object):
             for ant in list(self.ants.values()):
                 field = index(*ant)
                 self.server.set_playfield(field, self.server.get_playfield(field) & CLEARANTMASK)
+            self.server.clients.remove(self)
+            self.server.build_lookup()
 
     def set_playfield(self, idx, value):
         if value == 0:
@@ -221,7 +225,7 @@ class AntServer(object):
                 #antPrint("Ant of team {}:{} is at {},{}, health {}".format(c.id, c.name.strip(b"\0"), ant[0], ant[1], health))
                 if health <= 0:
                     antPrint("Ant of team {}:{} WAS ALEADY DEAD!".format(c.id, c.name.strip(b"\0")))
-                for nx, ny in _move:
+                for nx, ny in _move.values():
                     neigh = index(x + nx, y + ny)
                     if neigh >= 0 and neigh < (PLAYFIELDSIZE * PLAYFIELDSIZE) and neigh != field:
                         if self.get_playfield(neigh) & ANT == ANT and self.get_team(neigh) != c.id:
@@ -320,8 +324,6 @@ class AntServer(object):
                             c.set_action(action)
                         else:
                             c.remove()
-                            self.clients.remove(c)
-                            self.build_lookup()
                     else:
                         c.hello(receive_hello(c.s))
 
@@ -333,8 +335,6 @@ class AntServer(object):
                 except Exception as e:
                     antPrint('Removing client {} ({})\n{}'.format(c.id, e, traceback.format_exc()))
                     c.remove()
-                    self.clients.remove(c)
-                    self.build_lookup()
 
     def run(self, maxturns=0):
         turn = 0
@@ -347,7 +347,7 @@ class AntServer(object):
                     self.open = False
                     self.started = True
                     antPrint("Tournament started!")
-            sleep(1/TICK_TARGET)  # round time
+            sleep(1 / TICK_TARGET)  # round time
 
             self.handle_client_inputs()
 
