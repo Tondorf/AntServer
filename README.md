@@ -120,4 +120,5 @@ Offset   Type      Description
 ```
 
 In this scheme, any action for ants not alive anymore are ignored.
-If an ant should not move, send a 0 or 5 for this ant.
+If an ant should not move, send a 5 for this ant.
+The 0 is the command for dropping what the ant carries.

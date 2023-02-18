@@ -38,7 +38,7 @@ def receive_hello(sock):
         return _hello.unpack_from(sock.recv(_hello.size))
     except:
         print("Error receiving hello message from socket {}".format(sock.fileno()))
-        return (0, "-error-")
+        return -1, None
 
 
 def send_turn(sock, cid, teams, objects):

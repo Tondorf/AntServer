@@ -78,8 +78,8 @@ class AntServer(object):
             self.ants = {}
             self.server = server
 
-        def hello(self, hello_msg):
-            typ, self.name = hello_msg
+        def hello(self, typ, name):
+            self.name = name
             self.actor = typ != 0
             if self.actor:
                 used = [c.id for c in self.server.clients]
@@ -134,18 +134,18 @@ class AntServer(object):
             for y in range(BASESIZE):
                 self.set_playfield(index(xpos + x, ypos + y), Coord.homebase(cid))
 
-    def place_sugar_cube(self, xpos, ypos, radius):
+    def place_entity_cube(self, xpos, ypos, radius, material=SUGAR):
         for x in range(radius):
             for y in range(radius):
-                self.set_playfield(index(xpos + x, ypos + y), SUGAR)
+                self.set_playfield(index(xpos + x, ypos + y), material)
 
-    def place_sugars_randomly(self, num, dim):
+    def place_randomly(self, num, dim, material=SUGAR):
         for i in range(num):
             min = BORDER + BASESIZE + BASEDIST
             max = PLAYFIELDSIZE - BORDER - BASESIZE - BASEDIST - dim
             xpos = random.randint(min, max)
             ypos = random.randint(min, max)
-            self.place_sugar_cube(xpos, ypos, dim)
+            self.place_entity_cube(xpos, ypos, dim, material)
 
     def __init__(self, do_visualizer=True, fullscreen=False, tournament=False, port=5000):
         self.playfield = {}
@@ -171,7 +171,8 @@ class AntServer(object):
         for cid, (x, y) in enumerate(self.homebase_coords):
             self.place_homebase(cid, x - BASESIZE // 2, y - BASESIZE // 2)
             print("Homebase for cid {} at {},{}".format(cid, x, y))
-        self.place_sugars_randomly(3, 10)
+        self.place_randomly(12, 5, SUGAR)
+        self.place_randomly(6, 5, ATOMICWASTE)
 
         if self.do_visualizer:
             self.vis = Visualizer(fullscreen)
@@ -211,7 +212,9 @@ class AntServer(object):
                 antPrint("\n-------------- Wrong client ---------------")
             # iterate over 16 actions, there is always exactly 1 per ant
             for idx, action in enumerate(actions):
-                if action > 9 or action == 0 or action == 5:
+                if action == 0: # dropping
+                    pass
+                if action > 9 or action == 5:
                     continue
                 antpos = client.ants.get(idx, None)
                 if antpos:
@@ -224,8 +227,8 @@ class AntServer(object):
                         client.ants[idx] = coord(newfield)
                         # new field: copy value from old field (but not homebase)
                         self.set_playfield(newfield, (self.get_playfield(newfield) & 0x0f) | (self.get_playfield(oldfield) & ~HOMEBASE))
-                        # old field: remove ant (and potential sugar)
-                        self.set_playfield(oldfield, self.get_playfield(oldfield) & CLEARANTSUGAR & 0x0f)
+                        # old field: remove ant (and potential sugar/waste)
+                        self.set_playfield(oldfield, self.get_playfield(oldfield) & CLEARANTSUGARWASTE & 0x0F)
                         # check for sugar returned to home base
                         sugar_there = self.get_playfield(newfield) & (HOMEBASE | SUGAR) == (HOMEBASE | SUGAR)
                         own_base = Coord.cid(self.get_playfield(newfield)) == cid
@@ -235,10 +238,9 @@ class AntServer(object):
                             # remove sugar from world
                             self.set_playfield(newfield, self.playfield[newfield] & CLEARSUGARMASK)
                         homebase = self.get_playfield(newfield) & HOMEBASE == HOMEBASE
-                        own_base = Coord.cid(self.get_playfield(newfield)) == cid
-                        # replenish ant health
+                        # replenish ant health if at home
                         if homebase and own_base and self.get_health(newfield) < ANT_MAX_HEALTH:
-                            antPrint("Replenishing cid={} ant={} health to 10".format(cid, idx))
+                            antPrint("Replenishing cid={} ant={} health to maximum".format(cid, idx))
                             self.set_health(newfield, ANT_MAX_HEALTH)
 
     def get_health(self, field):
@@ -291,12 +293,6 @@ class AntServer(object):
                             if valid_index(place):
                                 self.set_playfield(place, self.get_playfield(place) | SUGAR)
 
-    def update(self):
-        """player-action-independent game updates, mainly fighting"""
-        # let ants fight
-        self.let_ants_fight()
-        # and now, remove dead ants
-        self.handle_dead_ants()
 
     def get_teams(self):
         teams = [(0, 0, b'') for i in range(16)]
@@ -368,7 +364,9 @@ class AntServer(object):
                         else:
                             c.remove()
                     else:
-                        c.hello(receive_hello(c.s))
+                        typ, name = receive_hello(c.s)
+                        if typ >= 0:
+                            c.hello(typ, name)
 
     def notify_clients(self, teams, objects):
         for c in self.clients:
@@ -399,14 +397,16 @@ class AntServer(object):
                     if c.actor:
                         self.do_action(c.id, c.get_action())
 
-            self.update()
+            self.let_ants_fight()
+
+            self.handle_dead_ants()
 
             teams = self.get_teams()
             objects = self.get_objects()
             self.notify_clients(teams, objects)
 
             if self.do_visualizer:
-                self.vis.draw(self.playfield)
+                self.vis.draw(teams, self.playfield)
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False

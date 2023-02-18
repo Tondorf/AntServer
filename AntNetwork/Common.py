@@ -31,23 +31,20 @@ ID_SHIFT = 12
 CLEARANTMASK = ~ANT
 CLEARANTSUGAR = CLEARANTMASK & ~SUGAR
 CLEARANTWASTE = CLEARANTMASK & ~ATOMICWASTE
+CLEARANTSUGARWASTE = CLEARANTMASK & ~SUGAR & ~ATOMICWASTE
 CLEARSUGARMASK = 0xFFF0 | ~SUGAR
 CLEARWASTEMASK = 0xFFF0 | ~ATOMICWASTE
-
 
 def index(x, y):
     """maps from 1000x1000 to 1000000"""
     return x + y * PLAYFIELDSIZE
 
-
 def coord(idx):
     """maps from 1000000 to 1000x1000"""
     return (int(idx % PLAYFIELDSIZE), int(idx // PLAYFIELDSIZE))
 
-
 def valid_index(idx):
     return idx >= 0 and idx <= (PLAYFIELDSIZE * PLAYFIELDSIZE) - 1
-
 
 def valid_coord(x, y):
     if x < 0 or x >= PLAYFIELDSIZE:
@@ -56,16 +53,13 @@ def valid_coord(x, y):
         return False
     return True
 
-
 def honor_bounds(x):
     return max(0, min(x, PLAYFIELDSIZE - 1))
-
 
 def dist(p1, p2):
     p1x, p1y = p1
     p2x, p2y = p2
     return math.sqrt((p1x - p2x) ** 2 + (p1y - p2y) ** 2)
-
 
 def antPrint(args):
     print("\n" + args)
