@@ -62,11 +62,11 @@ class Visualizer:
         for i, field in list(playfield.items()):  # for every pixel:
             if field == 0:
                 continue
-            if field & ANT_WITH_WASTE == ANT_WITH_WASTE:
+            if field & ANT_WITH_TOXIN == ANT_WITH_TOXIN:
                 self.screen.set_at(coord(i), Colors.greenish.value)
             elif field & ANT_WITH_SUGAR == ANT_WITH_SUGAR:
                 self.screen.set_at(coord(i), Colors.redish.value)
-            elif field & ATOMICWASTE == ATOMICWASTE:
+            elif field & TOXIN == TOXIN:
                 self.screen.set_at(coord(i), Colors.green.value)
             elif field & SUGAR == SUGAR:
                 self.screen.set_at(coord(i), Colors.white.value)

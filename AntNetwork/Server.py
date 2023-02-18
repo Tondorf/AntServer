@@ -40,7 +40,7 @@ _move = {
 
 class Coord:
     def vals2int(typ, ant_id, health, cid):
-        assert typ in [ANT, SUGAR, HOMEBASE, ATOMICWASTE, ANT_WITH_SUGAR, ANT_WITH_WASTE]
+        assert typ in [ANT, SUGAR, TOXIN, HOMEBASE, ANT_WITH_SUGAR, ANT_WITH_TOXIN]
         assert ant_id < 16
         assert health < 16
         assert cid < 16
@@ -74,7 +74,7 @@ class AntServer(object):
             self.actor = False
             self.hello_received = False
             self.action = None
-            self.sugar = 0
+            self.score = 0
             self.ants = {}
             self.server = server
 
@@ -137,9 +137,10 @@ class AntServer(object):
     def place_entity_cube(self, xpos, ypos, radius, material=SUGAR):
         for x in range(radius):
             for y in range(radius):
-                self.set_playfield(index(xpos + x, ypos + y), material)
+                idx = index(xpos + x, ypos + y)
+                self.set_playfield(idx, self.get_playfield(idx) | material)
 
-    def place_randomly(self, num, dim, material=SUGAR):
+    def place_random_patches(self, num, dim, material=SUGAR):
         for i in range(num):
             min = BORDER + BASESIZE + BASEDIST
             max = PLAYFIELDSIZE - BORDER - BASESIZE - BASEDIST - dim
@@ -171,8 +172,10 @@ class AntServer(object):
         for cid, (x, y) in enumerate(self.homebase_coords):
             self.place_homebase(cid, x - BASESIZE // 2, y - BASESIZE // 2)
             print("Homebase for cid {} at {},{}".format(cid, x, y))
-        self.place_randomly(12, 5, SUGAR)
-        self.place_randomly(6, 5, ATOMICWASTE)
+        self.place_random_patches(INIT_PATCHES_SUGAR_CNT, INIT_PATCHES_SUGAR_SIZE, SUGAR)
+        self.place_random_patches(INIT_PATCHES_TOXIN_CNT, INIT_PATCHES_TOXIN_SIZE, TOXIN)
+        ### DEBUG!!!
+        self.place_entity_cube(100, 100, 2, TOXIN)
 
         if self.do_visualizer:
             self.vis = Visualizer(fullscreen)
@@ -212,9 +215,7 @@ class AntServer(object):
                 antPrint("\n-------------- Wrong client ---------------")
             # iterate over 16 actions, there is always exactly 1 per ant
             for idx, action in enumerate(actions):
-                if action == 0: # dropping
-                    pass
-                if action > 9 or action == 5:
+                if action > 9 or action == 0 or action == 5:
                     continue
                 antpos = client.ants.get(idx, None)
                 if antpos:
@@ -225,20 +226,28 @@ class AntServer(object):
                     if self.can_move(oldfield, newfield):
                         # if allowed: actually move the ant
                         client.ants[idx] = coord(newfield)
-                        # new field: copy value from old field (but not homebase)
+                        # new field: perform move = copy value from old field (but not homebase)
                         self.set_playfield(newfield, (self.get_playfield(newfield) & 0x0f) | (self.get_playfield(oldfield) & ~HOMEBASE))
-                        # old field: remove ant (and potential sugar/waste)
-                        self.set_playfield(oldfield, self.get_playfield(oldfield) & CLEARANTSUGARWASTE & 0x0F)
-                        # check for sugar returned to home base
-                        sugar_there = self.get_playfield(newfield) & (HOMEBASE | SUGAR) == (HOMEBASE | SUGAR)
-                        own_base = Coord.cid(self.get_playfield(newfield)) == cid
-                        if sugar_there and own_base:
-                            # award point to team
-                            client.sugar += 1
-                            # remove sugar from world
-                            self.set_playfield(newfield, self.playfield[newfield] & CLEARSUGARMASK)
-                        homebase = self.get_playfield(newfield) & HOMEBASE == HOMEBASE
+                        # old field: remove ant (and potential sugar/toxin)
+                        self.set_playfield(oldfield, self.get_playfield(oldfield) & CLEARANTSUGARTOXIN & 0x0F)
+
+                        # check for sugar brought to a base
+                        # you CAN bring sogar to foreign bases to award points to this team, this would be stupid, but nothing stops you
+                        if self.get_playfield(newfield) & (HOMEBASE | SUGAR) == (HOMEBASE | SUGAR):
+                            cid = Coord.cid(self.get_playfield(newfield))
+                            self.clients[self.lookup[cid]].score += 1 # award point to team of base
+                            self.set_playfield(newfield, self.playfield[newfield] & CLEARSUGARMASK) # remove sugar from world
+
+                        # check for toxin brought to a base
+                        # you CAN bring toxin to your own base and receive the penalty, this would be stupid, but nothing stops you
+                        if self.get_playfield(newfield) & (HOMEBASE | TOXIN) == (HOMEBASE | TOXIN):
+                            cid = Coord.cid(self.get_playfield(newfield))
+                            self.clients[self.lookup[cid]].score -= 1
+                            self.set_playfield(newfield, self.playfield[newfield] & CLEARTOXINMASK)
+
                         # replenish ant health if at home
+                        homebase = self.get_playfield(newfield) & HOMEBASE == HOMEBASE
+                        own_base = Coord.cid(self.get_playfield(newfield)) == cid
                         if homebase and own_base and self.get_health(newfield) < ANT_MAX_HEALTH:
                             antPrint("Replenishing cid={} ant={} health to maximum".format(cid, idx))
                             self.set_health(newfield, ANT_MAX_HEALTH)
@@ -272,7 +281,7 @@ class AntServer(object):
                                 foe = self.clients[self.lookup[self.get_team(neigh)]]
                                 antPrint("Ant {}:{} killed by {}:{}".format(c.id, c.name.strip(b"\0"), foe.id, foe.name.strip(b"\0")))
                                 # award points for killing
-                                foe.sugar += POINTS_FOR_KILL
+                                foe.score += POINTS_FOR_KILL
                 self.set_health(field, max(0, health))
 
     def handle_dead_ants(self):
@@ -293,12 +302,11 @@ class AntServer(object):
                             if valid_index(place):
                                 self.set_playfield(place, self.get_playfield(place) | SUGAR)
 
-
     def get_teams(self):
         teams = [(0, 0, b'') for i in range(16)]
         for c in self.clients:
             if c.id >= 0:
-                teams[c.id] = (c.sugar, len(c.ants), c.name)
+                teams[c.id] = (c.score, len(c.ants), c.name)
         return teams
 
     def place_ants(self, cid):
@@ -323,7 +331,7 @@ class AntServer(object):
                 if idx == -1:
                     f.write("\t\t\n")
                 else:
-                    f.write("{}\t{}\t{}\n".format(self.clients[idx].name.strip(b"\0"), self.clients[idx].sugar, len(self.clients[idx].ants)))
+                    f.write("{}\t{}\t{}\n".format(self.clients[idx].name.strip(b"\0"), self.clients[idx].score, len(self.clients[idx].ants)))
 
     _downcount = 1000
 

@@ -102,7 +102,7 @@ Offset   Type      Description
 Each Object is coded as follows:
 ```
 Offset   Type    Description
-0        u8      upper nibble: object type (0=empty, 1=ant, 2=sugar, 4=homebase, 8=atomic_waste, or bit combinations thereof), lower nibble: team ID
+0        u8      upper nibble: object type (0=empty, 1=ant, 2=sugar, 4=toxin, 8=homebase, or bit combinations thereof), lower nibble: team ID
 1        u8      upper nibble: ant ID, lower nibble: ant health (1-10)
 2        u16     horizontal (X) coordinate
 4        u16     vertical (Y) coordinate
