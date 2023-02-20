@@ -2,10 +2,12 @@
 # -*- coding: utf-8 *-*
 
 import AntNetwork
+import AntNetwork.Client
+
 import sys
 
 if __name__ == "__main__":
-    client = AntNetwork.AntClient(sys.argv[1], 5000, "TestClient", True)
+    client = AntNetwork.Client.AntClient(sys.argv[1], 5000, "TestClient", True)
     while True:
         client.send_action((1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7))
         Id, teams, objects = client.get_turn()
