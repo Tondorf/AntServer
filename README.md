@@ -12,7 +12,7 @@ Install: `pip install -r requirements.txt`
 
 Start server: `python AntServer.py`
 
-Start visualizer: `python AntVisualizer.py`
+Start visualizer: `python AntVis.py`
 
 Start sample client: `python SampleBotXX.py`
 

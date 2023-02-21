@@ -40,6 +40,10 @@ def is_sugar(obj):
     return (obj[0] >> 4) & AN.SUGAR == AN.SUGAR
 
 
+def is_toxin(obj):
+    return (obj[0] >> 4) & AN.TOXIN == AN.TOXIN
+
+
 def team(obj):
     return obj[0] & 0x0F
 
